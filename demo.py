@@ -53,14 +53,17 @@ def send_frame_and_recv(sock, image, signal=1):
 
 
 def build_mosaic_trajectory():
-    step_a = np.arange(0, 5, 0.4)
-    step_b = np.arange(5, 8, 0.1)
+    # 略大于 1：同半径范围内多绕几圈，圆环间距缩小；步长略减小，相邻采样更密。
+    spiral_wind = 1.12
+    step_a = np.arange(0, 5, 0.3)
+    step_b = np.arange(5, 8, 0.08)
     steps = np.concatenate((step_a, step_b))
 
     trajectory = []
     for i in steps:
-        x = i * np.cos(i * np.pi) * 1e-4
-        y = i * np.sin(i * np.pi) * 1e-4
+        ang = i * np.pi * spiral_wind
+        x = i * np.cos(ang) * 1e-4
+        y = i * np.sin(ang) * 1e-4
         trajectory.append([x, y, 0.0, 0.0, 0.0])
     return trajectory
 

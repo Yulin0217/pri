@@ -334,15 +334,17 @@ def main():
         print("Visual servoing with mosaicing mode")
         clear_signal = {'value': 0, 'mosaic': True}
         mosaic_trajectory = []
-        # compute spiral x, y trajectory
-        step_a = np.arange(0, 5, 0.4)
-        step_b = np.arange(5, 8, 0.1)
+        # compute spiral x, y trajectory（略收紧：多绕圈 + 更密采样）
+        spiral_wind = 1.12
+        step_a = np.arange(0, 5, 0.3)
+        step_b = np.arange(5, 8, 0.08)
         steps = np.concatenate((step_a, step_b))
         z = 0
         n_start = 14
         for n, i in enumerate(steps):
-            x = i * np.cos(i * np.pi) * 1e-4
-            y = i * np.sin(i * np.pi) * 1e-4
+            ang = i * np.pi * spiral_wind
+            x = i * np.cos(ang) * 1e-4
+            y = i * np.sin(ang) * 1e-4
             if i >= 3:
                 if x < 0 and y < 0:
                     z = -100e-6
