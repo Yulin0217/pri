@@ -53,7 +53,7 @@ def send_frame_and_recv(sock, image, signal=1):
 
 
 def build_mosaic_trajectory():
-    # 略大于 1：同半径范围内多绕几圈，圆环间距缩小；步长略减小，相邻采样更密。
+    # >1: more winding per radius (tighter rings); smaller step = denser samples along the path.
     spiral_wind = 1.12
     step_a = np.arange(0, 5, 0.3)
     step_b = np.arange(5, 8, 0.08)
@@ -91,6 +91,10 @@ def main():
         sock.connect((HOST, PORT))
         print(f"Connected to server: {HOST}:{PORT}")
 
+        input("Press Enter to start; scan begins after a 5 s delay… ")
+        print("Starting scan in 5 seconds…")
+        time.sleep(5)
+
         for idx, xyzrr in enumerate(trajectory):
             p = Pose(xyzrr[0], xyzrr[1], xyzrr[2], xyzrr[3], xyzrr[4], 0.0)
             smarpod.Move(h, p, 0, True)
@@ -103,7 +107,7 @@ def main():
 
             try:
                 server_reply = send_frame_and_recv(sock, frame, signal=1)
-                # 只做通信确认，不使用 server 返回位姿/控制量指导下一步。
+                # Read reply for flow control only; do not use pose/commands from server for motion.
                 print(f"[{idx:04d}] server keys: {list(server_reply.keys())}, ignored for mosaic.")
             except Exception as exc:
                 print(f"[{idx:04d}] communication failed: {exc}")
