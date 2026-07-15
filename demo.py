@@ -12,7 +12,7 @@ from smaract.smarpod import Pose as Pose
 from utils_client import SmarPod_init, pose_to_str
 
 HOST = "172.30.28.159"
-PORT = 12333
+PORT = 12334
 
 
 def capture_partial_screen(top, left, width, height):

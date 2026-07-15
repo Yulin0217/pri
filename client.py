@@ -18,7 +18,7 @@ import json
 import random
 
 HOST = '172.30.28.159'  # Replace with the AGX station's IP address
-PORT = 12333    # Port to connect to
+PORT = 12334   # Port to connect to
 
 # Queue to hold distances received from the server
 distance_queue = queue.Queue()
