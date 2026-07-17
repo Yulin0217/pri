@@ -19,7 +19,8 @@ the server to the robot pose.
 │   ├── client.py                # Visual-servoing client with three run modes
 │   └── demo.py                  # Spiral-mosaic demo (sends images, ignores server replies)
 ├── common/
-│   └── utils_client.py          # Shared helpers: SmarPod_init(), axis-angle -> (dRx, dRy), pose printing
+│   ├── utils_client.py          # Shared helpers: SmarPod_init(), axis-angle -> (dRx, dRy), pose printing
+│   └── capture.py               # Screen capture of the pCLE live view (mss)
 ├── experiments/                 # Standalone data-collection / motion scripts (no server needed)
 │   ├── cone_rotation.py         # Probe-tip calibration sweeps; cone-rotation variants kept commented out
 │   └── data_collection.py       # XY grid scan collecting pCLE screenshots (clear/blur dataset)
@@ -30,6 +31,11 @@ the server to the robot pose.
 ├── examples/                    # SmarAct SDK programming examples (lightly adapted)
 │   ├── example1.py              # Pose-sequence example
 │   └── example2.py              # One-time controller configuration (ConfigureController)
+├── summer_school/               # Data-collection scripts + guide for distance/orientation labels
+│   ├── collect_distance_data.py    # Sweep Z, capture pCLE frames labelled with defocus distance
+│   ├── collect_orientation_data.py # Tilt probe over (axis, angle), capture labelled frames
+│   ├── collection_utils.py         # Shared setup: pivot at tip, save labels.json
+│   └── README.md                   # Detailed data-collection guide
 ├── environment.txt              # Python dependencies (pip requirements format)
 └── README.md
 ```
@@ -119,6 +125,20 @@ used for motion. The trajectory is fully local. Output goes to
 - `experiments/cone_rotation.py` — active part runs a ±1 mm cross sweep along X then Y
   for probe-tip calibration. The cone-rotation sweeps (fixed angle, varying axis, using
   `compute_dx_dy_dz_dRx_dRy`) are kept as commented-out blocks.
+
+## Data collection (Summer School)
+
+`summer_school/` contains two scripts that build labelled training sets for the models
+used by the visual-servoing client, plus a detailed guide (`summer_school/README.md`):
+
+- `collect_distance_data.py` — sweeps the probe along Z from a user-set focus plane and
+  labels each captured pCLE frame with its defocus distance (µm).
+- `collect_orientation_data.py` — tilts the probe over a grid of `(axis, angle)`
+  orientations (via `compute_dRx_dRy`) and labels each captured frame.
+
+Each run writes a timestamped `distance_data_*/` or `orientation_data_*/` directory with
+an `images/` folder and a `labels.json`. See `summer_school/README.md` for setup,
+calibration, configuration, and the label format.
 
 ## Tools
 
