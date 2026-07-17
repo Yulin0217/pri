@@ -9,7 +9,12 @@ import smaract.smarpod as smarpod
 from mss import mss
 from smaract.smarpod import Pose as Pose
 
-from utils_client import SmarPod_init, pose_to_str
+# Make the repo root importable so `common` resolves when this file is run directly.
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from common.utils_client import SmarPod_init, pose_to_str
 
 HOST = "172.30.28.159"
 PORT = 12334

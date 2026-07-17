@@ -1,0 +1,14 @@
+# Python environment for the SmarPod pCLE client scripts.
+# Tested with CPython 3.12.
+#
+# Install the pip-installable dependencies with:
+#   pip install -r environment.txt
+#
+# NOTE: the SmarAct SmarPod Python API ("smaract.smarpod") is NOT on PyPI and
+# is NOT listed below. Install it from the SmarAct SDK delivered with the
+# SmarPod controller. The Python API and the SmarPod shared library must have
+# the same major version (checked at startup by check_lib_compatibility()).
+
+numpy>=1.24
+opencv-python>=4.7
+mss>=9.0

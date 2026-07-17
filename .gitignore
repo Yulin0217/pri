@@ -1,0 +1,8 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Run outputs written by the scripts
+robot_state_*/
+mosaic_demo_*/
+clear_blur_data*/

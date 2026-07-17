@@ -27,7 +27,6 @@ import cv2
 import os
 import json
 from time import strftime, localtime
-from utils_client import SmarPod_init
 
 
 def check_lib_compatibility():

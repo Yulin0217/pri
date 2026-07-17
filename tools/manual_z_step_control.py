@@ -1,7 +1,12 @@
 import smaract.smarpod as smarpod
 from smaract.smarpod import Pose
 
-from utils_client import SmarPod_init
+# Make the repo root importable so `common` resolves when this file is run directly.
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from common.utils_client import SmarPod_init
 
 
 def pose_to_str(pose):

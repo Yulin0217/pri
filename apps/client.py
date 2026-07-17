@@ -11,7 +11,13 @@ import numpy as np
 import cv2
 import time
 from mss import mss
-from utils_client import SmarPod_init, compute_dRx_dRy, pose_to_str
+
+# Make the repo root importable so `common` resolves when this file is run directly.
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from common.utils_client import SmarPod_init, compute_dRx_dRy, pose_to_str
 import random
 import os
 import json
