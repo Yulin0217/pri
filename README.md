@@ -20,7 +20,8 @@ the server to the robot pose.
 │   └── demo.py                  # Spiral-mosaic demo (sends images, ignores server replies)
 ├── common/
 │   ├── utils_client.py          # Shared helpers: SmarPod_init(), axis-angle -> (dRx, dRy), pose printing
-│   └── capture.py               # Screen capture of the pCLE live view (mss)
+│   ├── capture.py               # Screen capture of the pCLE live view (mss)
+│   └── net.py                   # Length-prefixed pickle messaging over TCP
 ├── experiments/                 # Standalone data-collection / motion scripts (no server needed)
 │   ├── cone_rotation.py         # Probe-tip calibration sweeps; cone-rotation variants kept commented out
 │   └── data_collection.py       # XY grid scan collecting pCLE screenshots (clear/blur dataset)
@@ -36,6 +37,10 @@ the server to the robot pose.
 │   ├── collect_orientation_data.py # Tilt probe over (axis, angle), capture labelled frames
 │   ├── collection_utils.py         # Shared setup: pivot at tip, save labels.json
 │   └── README.md                   # Detailed data-collection guide
+├── mosaicking/                  # Stitch pCLE frames into a large mosaic image
+│   ├── mosaic_core.py           # MosaicCanvas: place/blend frames, spiral trajectory
+│   ├── mosaic_direct.py         # Local mosaicking from commanded stage poses
+│   └── mosaic_regression.py     # Mosaicking from a TCP regression model's displacement
 ├── environment.txt              # Python dependencies (pip requirements format)
 └── README.md
 ```
@@ -139,6 +144,24 @@ used by the visual-servoing client, plus a detailed guide (`summer_school/README
 Each run writes a timestamped `distance_data_*/` or `orientation_data_*/` directory with
 an `images/` folder and a `labels.json`. See `summer_school/README.md` for setup,
 calibration, configuration, and the label format.
+
+## Mosaicking
+
+`mosaicking/` stitches the small pCLE frames captured while scanning into one large
+mosaic image. Both scripts scan the same local spiral trajectory and share
+`mosaic_core.py` (the `MosaicCanvas`, which maps stage/pixel positions onto a big canvas
+and blends overlaps).
+
+- `mosaicking/mosaic_direct.py` — local only. Each frame is placed using the SmarPod's
+  commanded `(x, y)` pose and the calibrated pixel scale (`METERS_PER_PIXEL`).
+- `mosaicking/mosaic_regression.py` — sends each frame to a regression server over
+  TCP/IP and places it using the server's estimated frame-to-frame displacement
+  (`{'dx', 'dy'}`), accumulated into an absolute canvas position. Falls back to the
+  commanded pose if the server is unreachable.
+
+Calibrate `METERS_PER_PIXEL` (and `SIGN_X` / `SIGN_Y`) for your optics before use. Each
+run writes `mosaic_direct_*/` or `mosaic_regression_*/` with `mosaic.png`, per-frame
+images, and a `trajectory.json`.
 
 ## Tools
 
