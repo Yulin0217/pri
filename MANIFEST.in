@@ -6,6 +6,6 @@ recursive-include common *.py
 recursive-include examples *.py
 recursive-include experiments *.py
 recursive-include mosaicking *.py
-recursive-include summer_school *.py *.md
+recursive-include summer_school *.py
 recursive-include tools *.py
 recursive-include tests *.py

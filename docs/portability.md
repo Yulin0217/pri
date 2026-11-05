@@ -33,15 +33,13 @@ Install conda on the destination computer, clone this repository, check out the
 ```bash
 conda env create -f environment.yml
 conda activate smarpod-pcle
-python -m pip install -e ".[dev]"
 smarpod-pcle --help
 ```
 
-The environment file already installs the project and development extra; the
-explicit pip command is also useful after changing package metadata. The
-development extra supplies tools for offline tests. Always use the activated
-environment's `python -m pip` so that the project and vendor Python API end up in
-the same interpreter.
+The environment file installs the project and development tools. For a non-conda
+installation, use the [README quick start](../README.md#quick-start-development-without-a-robot).
+When installing vendor bindings, use the activated environment's interpreter so
+the project and vendor API run in the same Python environment.
 
 Recreate the environment on each OS instead of copying a conda directory between
 computers. Python wheels and native libraries are platform-specific. The
@@ -74,6 +72,8 @@ Relative `output_dir` paths are resolved against the configuration file's
 directory. Importing project modules or asking for CLI help does not initialize
 hardware. Existing script paths are compatibility wrappers around the installed
 package; use the CLI to make the selected configuration explicit.
+The [layout and migration guide](project-layout.md) maps those paths to the
+current implementations and lists the supported command aliases.
 
 Run a check that does not open the robot, capture the screen, or contact a server:
 
@@ -157,9 +157,9 @@ preview uses OpenCV GUI windows and needs a graphical session.
 
 ## 5. Provide the inference service when needed
 
-`client`, `demo`, and `mosaic-regression` use a remote service; `collect-spiral`
-can optionally use one. The service implementation and weights must be obtained
-separately. Match the request/response format in [protocol.md](protocol.md),
+`servo-client`, `spiral-demo`, and `mosaic-regression` use a remote service;
+`collect-spiral` can optionally use one. The service implementation and weights
+must be obtained separately. Match the request/response format in [protocol.md](protocol.md),
 including the distinction between servo corrections and mosaic displacements.
 Allow the configured TCP port through the appropriate host/network firewall.
 

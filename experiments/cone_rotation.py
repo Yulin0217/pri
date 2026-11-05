@@ -1,4 +1,8 @@
-"""Compatibility entry point. Prefer: smarpod-pcle cross-scan."""
+"""Legacy script path; prefer ``smarpod-pcle cross-scan``.
+
+Maintained implementation: src/smarpod_pcle/scan_experiments/xy_cross_scan.py.
+This adapter retains existing launch scripts; add application logic there.
+"""
 
 if __name__ == "__main__":
     import sys

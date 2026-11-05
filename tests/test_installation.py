@@ -11,7 +11,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
-from smarpod_pcle import doctor, hardware
+from smarpod_pcle import doctor, robot_control as hardware
 from smarpod_pcle.config import Settings
 
 
@@ -32,7 +32,7 @@ import socket
 import cv2
 import mss
 
-from smarpod_pcle import capture, hardware
+from smarpod_pcle import screen_capture as capture, robot_control as hardware
 from smarpod_pcle.cli import COMMANDS
 
 def forbidden(*args, **kwargs):

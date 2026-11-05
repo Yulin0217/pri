@@ -1,4 +1,8 @@
-"""Compatibility entry point. Prefer: smarpod-pcle collect-spiral."""
+"""Legacy script path; prefer ``smarpod-pcle collect-spiral``.
+
+Maintained implementation: src/smarpod_pcle/data_collection/spiral_capture.py.
+This adapter retains existing launch scripts; add application logic there.
+"""
 
 if __name__ == "__main__":
     import sys

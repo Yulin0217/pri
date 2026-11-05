@@ -106,6 +106,7 @@ def load_settings(path=None):
     with config_path.open("rb") as handle:
         data = tomllib.load(handle)
     unknown = data.keys() - {f.name for f in fields(Settings)}
+    # Reject misspellings instead of silently applying a default to robot settings.
     if unknown:
         raise ValueError(f"Unknown configuration keys: {', '.join(sorted(unknown))}")
     values = {}
@@ -122,6 +123,7 @@ def load_settings(path=None):
     _nonempty(output, "output_dir")
     output = Path(output).expanduser()
     if not output.is_absolute():
+        # A saved machine configuration must select the same data location from any cwd.
         output = config_path.parent / output
     values["output_dir"] = str(output.resolve())
     return validate(Settings(**values))

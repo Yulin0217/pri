@@ -6,21 +6,24 @@ import sys
 from .config import configure
 
 COMMANDS = {
-    "client": ("apps.client", "Visual servoing (modes 0/1) or image streaming (mode 2)"),
-    "demo": ("apps.demo", "Local spiral demo with a connected server"),
-    "collect-distance": ("collection.distance", "Collect grouped distance-labelled images"),
-    "collect-orientation": ("collection.orientation", "Collect orientation-labelled images"),
-    "collect-spiral": ("collection.spiral", "Collect a slow open-loop spiral"),
-    "mosaic-direct": ("mosaicking.direct", "Mosaic using commanded stage positions"),
-    "mosaic-regression": ("mosaicking.regression", "Mosaic using server displacement estimates"),
-    "capture-region": ("tools.capture_region", "Preview a screen rectangle (no robot)"),
-    "jog-z": ("tools.manual_z_step_control", "Interactive 1 mm Z jogs"),
-    "pivot-check": ("tools.pivot_check", "Interactive probe-pivot calibration check"),
-    "grid-scan": ("experiments.data_collection", "Legacy XY grid with repeated images, no Z sweep"),
-    "cross-scan": ("experiments.cone_rotation", "Probe-tip calibration cross sweep"),
-    "sdk-sequence": ("examples.sequence", "Vendor-derived pose-sequence example"),
-    "configure-controller": ("examples.configure_controller", "Explicit one-time controller configuration"),
+    "servo-client": ("applications.visual_servo_client", "Visual servoing (modes 0/1) or image streaming (mode 2)"),
+    "spiral-demo": ("applications.spiral_stream_demo", "Local spiral demo with a connected server"),
+    "collect-distance": ("data_collection.distance_sweep", "Collect grouped distance-labelled images"),
+    "collect-orientation": ("data_collection.orientation_sweep", "Collect orientation-labelled images"),
+    "collect-spiral": ("data_collection.spiral_capture", "Collect a slow open-loop spiral"),
+    "mosaic-direct": ("mosaicking.direct_mosaic", "Mosaic using commanded stage positions"),
+    "mosaic-regression": ("mosaicking.regression_mosaic", "Mosaic using server displacement estimates"),
+    "capture-region": ("interactive_tools.screen_region_preview", "Preview a screen rectangle (no robot)"),
+    "jog-z": ("interactive_tools.z_axis_jog", "Interactive 1 mm Z jogs"),
+    "pivot-check": ("interactive_tools.probe_pivot_check", "Interactive probe-pivot calibration check"),
+    "grid-scan": ("scan_experiments.xy_grid_capture", "Legacy XY grid with repeated images, no Z sweep"),
+    "cross-scan": ("scan_experiments.xy_cross_scan", "Probe-tip calibration cross sweep"),
+    "sdk-pose-sequence": ("sdk_examples.pose_sequence", "Vendor-derived pose-sequence example"),
+    "configure-controller": ("sdk_examples.configure_controller", "Explicit one-time controller configuration"),
 }
+
+# Keep saved shell commands working while presenting descriptive names in --help.
+COMMAND_ALIASES = {"client": "servo-client", "demo": "spiral-demo", "sdk-sequence": "sdk-pose-sequence"}
 
 
 def main(argv=None):
@@ -32,17 +35,20 @@ def main(argv=None):
     doctor.add_argument("--capture", action="store_true", help="Also test a live screenshot")
     doctor.add_argument("--server", action="store_true", help="Also test TCP connectivity; send no payload")
     for name, (_, description) in COMMANDS.items():
-        sub = commands.add_parser(name, help=description, description=description)
-        if name == "client":
+        aliases = [alias for alias, canonical in COMMAND_ALIASES.items() if canonical == name]
+        sub = commands.add_parser(name, aliases=aliases, help=description, description=description)
+        if name == "servo-client":
             sub.add_argument("--mode", choices=("0", "1", "2"), help="Omit for interactive selection")
     args = parser.parse_args(argv)
+    command = COMMAND_ALIASES.get(args.command, args.command)
     try:
+        # Configure before importing a workflow; --help exits above without loading it.
         configure(args.config)
-        if args.command == "doctor":
+        if command == "doctor":
             from .doctor import run
             return run(check_sdk=args.sdk, check_capture=args.capture, check_server=args.server)
-        module = import_module(f"smarpod_pcle.{COMMANDS[args.command][0]}")
-        if args.command == "client":
+        module = import_module(f"smarpod_pcle.{COMMANDS[command][0]}")
+        if command == "servo-client":
             module.main(mode=args.mode)
         else:
             module.main()

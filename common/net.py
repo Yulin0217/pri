@@ -1,3 +1,3 @@
-"""Compatibility imports; new code should import smarpod_pcle.net."""
+"""Compatibility imports; new code should import smarpod_pcle.tcp_protocol."""
 
-from smarpod_pcle.net import *  # noqa: F403
+from smarpod_pcle.tcp_protocol import *  # noqa: F403

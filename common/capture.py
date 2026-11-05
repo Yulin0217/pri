@@ -1,3 +1,3 @@
-"""Compatibility imports; new code should import smarpod_pcle.capture."""
+"""Compatibility imports; new code should import smarpod_pcle.screen_capture."""
 
-from smarpod_pcle.capture import *  # noqa: F403
+from smarpod_pcle.screen_capture import *  # noqa: F403

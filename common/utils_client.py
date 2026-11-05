@@ -1,3 +1,3 @@
-"""Compatibility imports; new code should import smarpod_pcle.hardware."""
+"""Compatibility imports; new code should import smarpod_pcle.robot_control."""
 
-from smarpod_pcle.hardware import *  # noqa: F403
+from smarpod_pcle.robot_control import *  # noqa: F403

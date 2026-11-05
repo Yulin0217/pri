@@ -19,7 +19,7 @@ reference. Refocus on another sample/position and start another group, or enter
 `q` to finish. Cleanup stops and closes; it does not retract or move to origin.
 
 Scan constants live in
-[`src/smarpod_pcle/collection/distance.py`](../src/smarpod_pcle/collection/distance.py):
+[`src/smarpod_pcle/data_collection/distance_sweep.py`](../src/smarpod_pcle/data_collection/distance_sweep.py):
 
 | Constant | Default | Meaning |
 | --- | --- | --- |
@@ -69,11 +69,12 @@ smarpod-pcle --config config/local.toml collect-orientation
 
 After initialization, manually focus and press Enter. This measured pose is the
 reference for the whole run. X/Y remain at the reference, Z is offset by
-`-abs(BASE_Z_UM)` micrometres (converted to metres for the SDK), and the calculated tilt components are added to the reference
-X/Y rotations. Reference Z rotation is retained.
+`-abs(BASE_Z_UM)` micrometres (converted to metres for the SDK), and the calculated
+tilt components are added to the reference X/Y rotations. Reference Z rotation
+is retained.
 
 Scan constants live in
-[`src/smarpod_pcle/collection/orientation.py`](../src/smarpod_pcle/collection/orientation.py):
+[`src/smarpod_pcle/data_collection/orientation_sweep.py`](../src/smarpod_pcle/data_collection/orientation_sweep.py):
 
 | Constant | Default |
 | --- | --- |
@@ -101,13 +102,18 @@ not add a reference-return move.
 
 `collect-spiral` is the old `summer_school/data_collection.py`: a slow open-loop
 XY spiral, with raw/mosaic images and `positions.txt`. Its recipe and optional
-`USE_SERVER` switch are in `src/smarpod_pcle/collection/spiral.py`; server use is
-disabled by default. It is distinct from the two labelled collectors above.
+`USE_SERVER` switch are in
+[`data_collection/spiral_capture.py`](../src/smarpod_pcle/data_collection/spiral_capture.py);
+server use is disabled by default. It is distinct from the two labelled
+collectors above and does not stitch a mosaic itself.
 
 `grid-scan` is the older 21×21 XY scan spanning ±1 mm with 0.1 mm pitch. It retains
 41 repeated captures per XY point. The legacy `n` filename suffix ranges from
 0 to 400 but **does not command Z movement**; do not train a distance model using
 that suffix as a physical label. Its trajectory records now use distinct indices.
+The implementation is
+[`scan_experiments/xy_grid_capture.py`](../src/smarpod_pcle/scan_experiments/xy_grid_capture.py).
+See [the entry-point map](project-layout.md) for all retained script names.
 
 ## Interruptions and dataset handling
 

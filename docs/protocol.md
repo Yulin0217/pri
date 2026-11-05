@@ -17,8 +17,13 @@ TCP is a byte stream: either the header or payload can arrive in multiple reads.
 The receiver must read each part completely and treat an incomplete message or
 disconnect as an error. The shared transport rejects empty payloads and payloads
 larger than **16 MiB** (`16 * 1024 * 1024` bytes), as defined by
-`smarpod_pcle.net.MAX_MESSAGE_BYTES`; the peer must stay within that bound. A
-length bound limits message allocation, not pickle deserialization behavior.
+`smarpod_pcle.tcp_protocol.MAX_MESSAGE_BYTES`; the peer must stay within that bound.
+A length bound limits message allocation, not pickle deserialization behavior.
+
+`server.timeout_s` sets the socket timeout. During reception it applies to each
+blocking `recv()` call, not to the total duration of a message. A peer that keeps
+delivering small chunks can therefore take longer than that setting to complete
+one reply. The protocol does not implement a whole-message deadline.
 
 Only connect to a trusted peer on a trusted connection. Unpickling a crafted
 payload can execute arbitrary code before application-level key/type validation
@@ -54,8 +59,8 @@ mode; there is no protocol handshake that negotiates them.
 
 Stream-only client mode 2 continuously sends `signal = 1`. It drains any replies
 without using their values and also supports a server that sends no replies.
-Once a reply starts arriving, an incomplete frame must still finish within the
-configured socket timeout; a partial/invalid reply or disconnect ends the run.
+Once a reply starts arriving, a timed-out read, invalid reply, or disconnect ends
+the run; partially read messages are not retried on the same connection.
 
 ## Visual-servoing reply
 
@@ -88,7 +93,7 @@ corrections, not arbitrary poses. The existing orientation policy and coordinate
 conventions still need physical calibration; transport validation does not
 validate the inferred movement.
 
-`demo` consumes a reply for each image to keep the socket synchronized, but
+`spiral-demo` consumes a reply for each image to keep the socket synchronized, but
 does not apply its values to motion. Its trajectory is local. Ensure the service
 returns replies when using this command.
 

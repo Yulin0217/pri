@@ -1,5 +1,8 @@
 # Development
 
+Before each task, read [worklog.md](worklog.md) and the relevant guides; after the
+task, append your own changes, actual checks, and handoff to the shared worklog.
+
 ## Boundaries
 
 `src/smarpod_pcle` is the installable implementation. Root-level script folders
@@ -7,25 +10,35 @@ are compatibility adapters. Use the `smarpod-pcle` CLI for new workflows and kee
 machine settings in TOML instead of adding host addresses or screen coordinates
 to individual scripts.
 
+Use [project-layout.md](project-layout.md) to find implementations and compatibility
+mappings; keep the detailed file inventory there and in the root README.
+
 - `config` validates settings before command dispatch; unknown fields fail early.
-- `geometry`, transport framing, and mosaic primitives can run without the SDK.
-- `hardware.get_sdk()` is the explicit vendor-loading boundary. Importing modules
+- `geometry`, `tcp_protocol`, and `mosaicking.mosaic_canvas` can run without the SDK.
+- `robot_control.get_sdk()` is the explicit vendor-loading boundary. Importing modules
   must not prompt, connect, calibrate, reference, or move a controller.
-- `hardware.SmarPod_init()` opens/configures a handle and cleans up partially
+- `robot_control.SmarPod_init()` opens/configures a handle and cleans up partially
   completed initialization. `shutdown()` attempts Close even if Stop fails.
 - `move_checked()` rejects non-finite and unreachable poses. Reachability is not
   collision checking, and the code does not infer a physical safety envelope.
 - The servo main thread owns movement. Network workers communicate whole reply
   records through queues; sockets/workers stop before the controller is closed.
-- Shared capture uses both rectangles from the active configuration. Shared
-  output helpers create distinct run directories and check image-write success.
-- `mosaicking.scan` owns the common hardware/file lifecycle. Geometry and network
+- `screen_capture` reads both rectangles from the active configuration.
+  `run_output` creates distinct run directories and checks image-write success.
+- `mosaicking.scan_runner` owns the common hardware/file lifecycle. Geometry and network
   displacement sources are independently testable.
 
 The preserved servo policy is experimental: rotation updates include a random
 reset. This refactor does not replace it with a new control algorithm. Orientation
 dataset offsets likewise preserve the original projection approximation. Any
 future control-policy change needs separate numerical and hardware validation.
+
+Keep comments around the decisions that are easy to get wrong: metres versus
+micrometres, absolute versus focus-relative poses, the reply/request cycle,
+stateful regression fallback, and stopping workers before closing the device.
+New modules should have a short responsibility docstring and should import the
+vendor SDK only inside an explicit hardware operation. Avoid adding application
+logic to compatibility adapters.
 
 ## Checks
 
@@ -57,6 +70,9 @@ environment should not be copied as a Windows/Linux native installation.
 
 - Machine settings are centralized, and output defaults to `runs/`.
 - Legacy script paths require the project to be installed and delegate to the CLI.
+- Descriptive package folders and filenames identify each workflow. The former
+  internal module paths were renamed; update direct imports using the layout
+  guide. Historical root scripts and the documented CLI aliases remain supported.
 - Imports and help no longer initialize hardware. Streaming mode 2 needs no SDK.
 - Interrupted/error cleanup stops and closes without automatic homing.
 - Servo errors terminate the run; partial TCP headers are read correctly. Replies

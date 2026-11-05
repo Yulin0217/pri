@@ -1,3 +1,3 @@
-"""Compatibility imports; new code should import smarpod_pcle.collection.common."""
+"""Compatibility imports; new code should import smarpod_pcle.data_collection.collection_helpers."""
 
-from smarpod_pcle.collection.common import *  # noqa: F403
+from smarpod_pcle.data_collection.collection_helpers import *  # noqa: F403

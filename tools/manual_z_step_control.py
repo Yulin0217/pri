@@ -1,4 +1,8 @@
-"""Compatibility entry point. Prefer: smarpod-pcle jog-z."""
+"""Legacy script path; prefer ``smarpod-pcle jog-z``.
+
+Maintained implementation: src/smarpod_pcle/interactive_tools/z_axis_jog.py.
+This adapter retains existing launch scripts; add application logic there.
+"""
 
 if __name__ == "__main__":
     import sys

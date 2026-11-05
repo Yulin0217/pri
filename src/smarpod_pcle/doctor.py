@@ -44,7 +44,7 @@ def run(*, check_sdk=False, check_capture=False, check_server=False):
 
     if check_sdk:
         def sdk_check():
-            from .hardware import check_lib_compatibility, get_sdk
+            from .robot_control import check_lib_compatibility, get_sdk
             check_lib_compatibility()
             sdk = get_sdk()
             return f"API {sdk.api_version}; library {sdk.GetDLLVersion()} (no device opened)"
@@ -53,7 +53,7 @@ def run(*, check_sdk=False, check_capture=False, check_server=False):
         print("[SKIP] SmarAct SDK/device access (use --sdk on the control PC)")
     if check_capture:
         def capture_check():
-            from .capture import capture_pcle_view
+            from .screen_capture import capture_pcle_view
             image = capture_pcle_view()
             return f"Captured {image.shape}; visually verify ROI with capture-region"
         check("Screen capture", capture_check)
