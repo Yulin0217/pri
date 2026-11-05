@@ -1,0 +1,35 @@
+# Copy to local.toml; calibrate on the control computer before moving the robot.
+# Relative output paths are resolved against this file's directory.
+output_dir = "../runs"
+
+[robot]
+model = 10001
+locator = "usb:ix:0"
+speed_m_s = 0.003
+max_frequency_hz = 18500
+probe_tip_z_m = 0.0374
+
+[server]
+# Historical lab address: 172.30.28.159. Replace with your trusted inference host.
+host = "127.0.0.1"
+port = 12334
+timeout_s = 5.0
+
+[capture.pcle_view]
+top = 45
+left = 1118
+width = 350
+height = 350
+
+[capture.mosaic_view]
+top = 420
+left = 1050
+width = 600
+height = 600
+
+[mosaic]
+meters_per_pixel = 0.000001
+sign_x = 1
+sign_y = 1
+blend = "average"
+regression_in_micrometers = false

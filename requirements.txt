@@ -1,0 +1,2 @@
+# Standard pip installation; dependency metadata lives in pyproject.toml.
+-e .

@@ -9,7 +9,6 @@ SDK/
 *.TIFF
 Capture*.PNG
 Capture*.png
-requirements.txt
 
 # Run outputs written by the scripts
 robot_state_*/
@@ -46,3 +45,16 @@ ttt/
 yulin/
 yy/
 yyy/
+
+# Environment, package build and developer tools
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.DS_Store
+
+# Machine-specific settings and all new run outputs
+config/local.toml
+runs/

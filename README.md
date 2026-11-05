@@ -1,173 +1,222 @@
-# SmarPod pCLE Probe Control — Client
+# SmarPod pCLE Control
 
-Client-side control code for a SmarAct **SmarPod** 6-DoF micro-positioner carrying a
-pCLE (probe-based confocal laser endomicroscopy) probe. The laptop is connected to the
-SmarPod controller over USB. The scripts capture the pCLE viewer region of the screen
-with `mss`, stream the frames over TCP to a remote inference server (the "AGX station"),
-and — in the visual-servoing modes — apply the distance / angle corrections returned by
-the server to the robot pose.
+Python client tools for a SmarAct **SmarPod** six-axis positioner carrying a
+probe-based confocal laser endomicroscopy (**pCLE**) probe. The project captures
+the visible pCLE image, collects labelled datasets, stitches mosaics, and can
+apply corrections from an external inference server.
 
-> **Safety:** every script in this repository moves the positioner. Before running
-> anything, make sure the probe has enough clearance and cannot collide with the sample
-> or the optics.
+The robot SDK, controller drivers, pCLE acquisition software, inference server,
+and trained weights are **not included**. The current Mac is a development
+computer, not the robot-control computer. Offline checks do not validate motion.
+See [running on another computer](docs/portability.md) for the full deployment
+requirements and vendor/platform references.
 
-## Repository layout
+## Quick start: development without a robot
 
-```
-.
-├── apps/                        # Main client applications (talk to the AGX server)
-│   ├── client.py                # Visual-servoing client with three run modes
-│   └── demo.py                  # Spiral-mosaic demo (sends images, ignores server replies)
-├── common/
-│   ├── utils_client.py          # Shared helpers: SmarPod_init(), axis-angle -> (dRx, dRy), pose printing
-│   ├── capture.py               # Screen capture of the pCLE live view (mss)
-│   └── net.py                   # Length-prefixed pickle messaging over TCP
-├── experiments/                 # Standalone data-collection / motion scripts (no server needed)
-│   ├── cone_rotation.py         # Probe-tip calibration sweeps; cone-rotation variants kept commented out
-│   └── data_collection.py       # XY grid scan collecting pCLE screenshots (clear/blur dataset)
-├── tools/                       # Interactive helpers
-│   ├── manual_z_step_control.py # Jog the Z axis in 1 mm steps from the keyboard
-│   ├── robot_test.py            # Interactive pivot-point / tilt check
-│   └── test.py                  # Screenshot-region finder (pick capture coordinates)
-├── examples/                    # SmarAct SDK programming examples (lightly adapted)
-│   ├── example1.py              # Pose-sequence example
-│   └── example2.py              # One-time controller configuration (ConfigureController)
-├── summer_school/               # Data-collection scripts + guide for distance/orientation labels
-│   ├── collect_distance_data.py    # Sweep Z, capture pCLE frames labelled with defocus distance
-│   ├── collect_orientation_data.py # Tilt probe over (axis, angle), capture labelled frames
-│   ├── collection_utils.py         # Shared setup: pivot at tip, save labels.json
-│   └── README.md                   # Detailed data-collection guide
-├── mosaicking/                  # Stitch pCLE frames into a large mosaic image
-│   ├── mosaic_core.py           # MosaicCanvas: place/blend frames, spiral trajectory
-│   ├── mosaic_direct.py         # Local mosaicking from commanded stage poses
-│   └── mosaic_regression.py     # Mosaicking from a TCP regression model's displacement
-├── environment.txt              # Python dependencies (pip requirements format)
-└── README.md
-```
-
-All entry scripts insert the repository root into `sys.path` at startup, so they can be
-run directly from any working directory, e.g. `python apps/client.py`.
-
-## Environment
-
-- Python 3.12 (CPython); other recent 3.x versions should work.
-- Pip packages: `pip install -r environment.txt` (numpy, opencv-python, mss).
-- **SmarAct SmarPod Python API** (`smaract.smarpod`): not on PyPI. Install it from the
-  SmarAct SDK shipped with the controller. The Python API and the shared library must
-  have the same major version — this is checked at startup.
-
-## First-time hardware setup
-
-1. Find the USB locator with `smarpod.FindSystems()` (usually `usb:ix:0`).
-2. Configure the controller once for your SmarPod model code (here `10001`):
-   `smarpod.ConfigureController(10001, locator)` — see `examples/example2.py`.
-3. Open the device with `smarpod.Open(10001, locator)`.
-
-`common/utils_client.py::SmarPod_init()` wraps the regular startup used by the apps and
-tools: open, optional sensor calibration (asked interactively), referencing if needed,
-speed 3 mm/s, max piezo frequency 18.5 kHz, pivot mode `RELATIVE`.
-
-## Client-server protocol
-
-Every message is a 4-byte big-endian `uint32` length prefix followed by a `pickle`
-payload:
-
-- client → server: `{'image': <JPEG bytes, 224x224 grayscale>, 'signal': 0 | 1}`
-- server → client: `{'distance': float, 'angle': float, 'axis': float}`
-
-Set `HOST` / `PORT` at the top of `apps/client.py` and `apps/demo.py` to match the AGX
-station (default `172.30.28.159:12334`).
-
-Screen-capture rectangles are hard-coded: pCLE live view at `top=45, left=1118,
-350x350`; mosaic view at `top=420, left=1050, 600x600`. Use `tools/test.py` to find the
-right coordinates for your screen layout.
-
-## Applications
-
-### `apps/client.py` — visual-servoing client
+From the repository root, on the `yulin` branch:
 
 ```bash
-python apps/client.py
+conda env create -f environment.yml
+conda activate smarpod-pcle
+smarpod-pcle doctor
+python -m pytest
 ```
 
-Initializes the SmarPod (pivot point set 37.4 mm below the platform origin, i.e. at the
-probe tip), then asks for a run mode:
+This creates a separate Python 3.12 environment and installs the project in
+editable mode with development tools. No vendor SDK is needed for these checks;
+they do not open a controller, capture the screen, or contact an inference server.
+The tests use fake hardware and local socket pairs.
 
-| Mode | Name | Behaviour |
-|------|------|-----------|
-| `0` | Visual servoing + mosaicing | Follows a local spiral XY trajectory; at each waypoint streams frames, applies the server's distance/angle corrections, and advances once the server reports no correction |
-| `1` | Visual servoing | Moves to a user-given initial axis/angle/z offset, then continuously applies server corrections |
-| `2` | Controller | Only streams frames to the server; no robot motion |
-
-Three daemon threads run concurrently (frame sender, reply receiver, robot control).
-Press `q` + Enter (or Ctrl-C) to stop; the robot returns home and the device is closed.
-Each run writes `robot_state_<timestamp>/` containing `state.json` (per-step pose log)
-and `images/img_*.png` (mosaic-view screenshots).
-
-### `apps/demo.py` — spiral-mosaic demo
+Without conda, use Python 3.11 or newer in a virtual environment:
 
 ```bash
-python apps/demo.py
+python -m venv .venv
+# Activate .venv using the command for your shell, then:
+python -m pip install -e ".[dev]"
 ```
 
-Moves along a local spiral trajectory (`x = i cos(1.12 i pi) * 1e-4`,
-`y = i sin(1.12 i pi) * 1e-4`, denser sampling on the outer rings), captures the live
-frame and the mosaic view at every waypoint, and sends each frame to the server with
-`signal = 1`.
+Use `python -m smarpod_pcle` wherever `smarpod-pcle` is shown if the executable is
+not on your PATH. `pip install -r requirements.txt` installs the runtime project;
+the old `environment.txt` remains a compatible pip entry point.
 
-**Important:** server replies are read only to keep the socket drained — they are *not*
-used for motion. The trajectory is fully local. Output goes to
-`mosaic_demo_<timestamp>/images/` (`img_*.png` mosaic view, `frame_*.png` live frame).
+## Configuration
 
-## Experiments (offline, no server)
+Copy [config/example.toml](config/example.toml) to `config/local.toml` and edit it
+for the destination computer. Do not reuse the sample screen coordinates or
+probe geometry without checking them. Local configuration is git-ignored.
 
-- `experiments/data_collection.py` — asks for a save directory, then scans a 21x21 XY
-  grid (±1 mm, 0.1 mm pitch), saving pCLE screenshots as `<i>_<j>_<n>.jpg` into
-  `<save_dir>/clear_blur_data<timestamp>/` together with `trajectory.json`. The inner
-  Z sweep (`n` = 0…400 µm) is currently disabled in the commanded pose and only appears
-  in the file names. Commented-out variants: distance-blur series, orientation-blur
-  series, spiral scan, manual capture.
-- `experiments/cone_rotation.py` — active part runs a ±1 mm cross sweep along X then Y
-  for probe-tip calibration. The cone-rotation sweeps (fixed angle, varying axis, using
-  `compute_dx_dy_dz_dRx_dRy`) are kept as commented-out blocks.
+```bash
+smarpod-pcle --config config/local.toml doctor
+smarpod-pcle --config config/local.toml client --mode 2
+```
 
-## Data collection (Summer School)
+The second command actually captures the screen and connects to the configured
+server, but does not load the robot SDK or move the robot.
 
-`summer_school/` contains two scripts that build labelled training sets for the models
-used by the visual-servoing client, plus a detailed guide (`summer_school/README.md`):
+Configuration resolution is: `--config PATH`, then `SMARPOD_PCLE_CONFIG`, then
+`config/local.toml` in the current working directory, then built-in defaults.
+An explicitly supplied missing or invalid configuration is an error. Place
+`--config` **before** the command. Use an absolute config path when launching
+outside the checkout.
 
-- `collect_distance_data.py` — sweeps the probe along Z from a user-set focus plane and
-  labels each captured pCLE frame with its defocus distance (µm).
-- `collect_orientation_data.py` — tilts the probe over a grid of `(axis, angle)`
-  orientations (via `compute_dRx_dRy`) and labels each captured frame.
+| Section | Settings |
+| --- | --- |
+| `robot` | Model code, locator, speed in m/s, maximum frequency in Hz, probe-tip pivot Z in metres |
+| `server` | Trusted host, TCP port, timeout in seconds; default host is localhost |
+| `capture.pcle_view` | Live-view rectangle: `top`, `left`, `width`, `height`, in screen pixels |
+| `capture.mosaic_view` | Viewer mosaic rectangle used for client/demo logging |
+| `mosaic` | Metres per pixel, image/stage axis signs, blend mode, regression units |
+| `output_dir` | Root for captured data and logs |
 
-Each run writes a timestamped `distance_data_*/` or `orientation_data_*/` directory with
-an `images/` folder and a `labels.json`. See `summer_school/README.md` for setup,
-calibration, configuration, and the label format.
+Relative output paths in a TOML file are resolved against that file's directory.
+With no file, output defaults to `runs/` in the current working directory.
+New runs use timestamped directories including microseconds and never reuse an
+existing run directory. Individual workflows retain their scan constants in the
+corresponding source module; these are distinct from machine-specific settings.
 
-## Mosaicking
+Some calibration/legacy workflows intentionally override robot defaults:
+`sdk-sequence` uses a 10 mm X pivot, a coordinate-system X rotation of 1.5°, and
+motions reaching ±2 mm; it does not use the probe-tip pivot. `grid-scan` and
+`cross-scan` set a zero pivot; `pivot-check` uses the entered offsets.
+`collect-spiral` sets its own 25 µm/s speed and leaves the existing pivot unless
+`PIVOT_XYZ` is set in its recipe. Direct mosaicking caps configured speed at
+2 mm/s. The shared initializer sets pivot mode, but only servo/demo and the two
+labelled collectors automatically apply `robot.probe_tip_z_m`.
 
-`mosaicking/` stitches the small pCLE frames captured while scanning into one large
-mosaic image. Both scripts scan the same local spiral trajectory and share
-`mosaic_core.py` (the `MosaicCanvas`, which maps stage/pixel positions onto a big canvas
-and blends overlaps).
+## Commands
 
-- `mosaicking/mosaic_direct.py` — local only. Each frame is placed using the SmarPod's
-  commanded `(x, y)` pose and the calibrated pixel scale (`METERS_PER_PIXEL`).
-- `mosaicking/mosaic_regression.py` — sends each frame to a regression server over
-  TCP/IP and places it using the server's estimated frame-to-frame displacement
-  (`{'dx', 'dy'}`), accumulated into an absolute canvas position. Falls back to the
-  commanded pose if the server is unreachable.
+Run `smarpod-pcle --help` for the command list. Every command supports `--help`
+without hardware or SDK access.
 
-Calibrate `METERS_PER_PIXEL` (and `SIGN_X` / `SIGN_Y`) for your optics before use. Each
-run writes `mosaic_direct_*/` or `mosaic_regression_*/` with `mosaic.png`, per-frame
-images, and a `trajectory.json`.
+| Command | Purpose | Robot | Server |
+| --- | --- | --- | --- |
+| `doctor` | Package, config and output checks | No | No by default |
+| `capture-region` | Interactive screen-rectangle preview | No | No |
+| `client --mode 2` | Stream pCLE frames only | No | Required |
+| `client --mode 0` | Visual servoing while following a local XY spiral | Yes | Required |
+| `client --mode 1` | Visual servoing from a prompted initial offset | Yes | Required |
+| `demo` | Local spiral; drain server replies without using them for movement | Yes | Required |
+| `collect-distance` | Groups of Z-offset images from a manual focus reference | Yes | No |
+| `collect-orientation` | Tilt-labelled images relative to a manual focus reference | Yes | No |
+| `collect-spiral` | Slow open-loop scan with images and positions | Yes | Optional, disabled by default |
+| `mosaic-direct` | Stitch using commanded stage positions | Yes | No |
+| `mosaic-regression` | Stitch using inferred frame displacement | Yes | Attempts connection; local fallback |
+| `jog-z` | Enter to jog Z by 1 mm; `u`/`d` set direction; `q` exits | Yes | No |
+| `pivot-check` | Interactive pivot-offset and tilt check | Yes | No |
+| `grid-scan` | Legacy XY grid with repeated images at fixed Z | Yes | No |
+| `cross-scan` | X/Y cross sweep for probe-tip calibration | Yes | No |
+| `sdk-sequence` | Vendor-derived pose-sequence example | Yes | No |
+| `configure-controller` | Explicit, one-time persistent controller setup | Yes | No |
 
-## Tools
+Omitting `client --mode` prompts for a mode. Client modes can be stopped with
+`q` + Enter or Ctrl-C. Other workflows use Ctrl-C unless their prompt provides
+an exit command. The client preserves the original experimental orientation
+correction rule, including its random reset to an angle in `[0, 2)` degrees;
+it is not a calibrated general-purpose controller.
 
-- `tools/manual_z_step_control.py` — Enter = move 1 mm along Z, `u`/`d` = set direction
-  up/down, `q` = quit. Checks pose reachability before each step.
-- `tools/robot_test.py` — interactively set a pivot-point offset (mm), tilt the probe
-  −10° about the 45° axis, and return home. Used to verify the pivot calibration.
-- `tools/test.py` — enter screen coordinates and preview the captured region; use it to
-  update the hard-coded capture rectangles in `apps/` and `experiments/`.
+### Control-computer setup
+
+1. Install the matching SmarAct native runtime, drivers, and Python bindings for
+   the controller, OS, CPU architecture, and Python interpreter. The public
+   SmarPod SDK offering lists Windows and Linux; this project does not establish
+   Mac hardware support. Follow the exact SDK release's requirements.
+2. Install and open the pCLE acquisition/viewer software in a graphical session.
+3. Set the model, locator, calibrated pivot, display rectangles, and pixel scale
+   in the local configuration. Preview the rectangle with `capture-region`.
+4. If required, start a compatible inference service and configure its host/port.
+5. Use the opt-in diagnostics below, then commission the hardware separately.
+
+```bash
+smarpod-pcle --config config/local.toml doctor --sdk
+smarpod-pcle --config config/local.toml doctor --capture
+smarpod-pcle --config config/local.toml doctor --server
+```
+
+`--sdk` loads the API/native library and checks major versions without opening a
+device. `--capture` takes a real screenshot. `--server` opens and closes a TCP
+connection without sending images or validating a model. These flags can be
+combined. Details and troubleshooting are in [portability.md](docs/portability.md).
+
+**Movement lifecycle:** initialization can calibrate sensors (when selected) and
+reference an unreferenced stage. `configure-controller` always calibrates after
+writing configuration. Operational commands check pose reachability,
+which does not detect contact or collisions. Completed scans may return to home
+or their focus reference. Errors, cancellation, and cleanup call Stop/Close
+without adding an automatic return-home move. Confirm physical clearance for the
+actual trajectory, and use the controller's physical stop procedure if needed.
+
+### Data collection and outputs
+
+See [the collection guide](docs/data-collection.md) for scan parameters, reference
+poses, coordinate conventions, and `labels.json` examples.
+
+- Distance collection defaults to `0..200 µm` in `10 µm` steps, with a new manual
+  focus reference for each group. It returns to that reference after each group.
+- Orientation collection defaults to axes `0..180°` in `30°` steps and angles
+  `−10..10°` in `2°` steps. The measured reference XYZ/rotation is retained, and
+  calculated X/Y rotation offsets are added to its Euler components.
+- The legacy grid intentionally captures 41 repeated frames at each XY point;
+  the old filename suffix resembles a Z offset, but no Z sweep is commanded.
+  Use `collect-distance` for actual distance-labelled data.
+- Direct/regression mosaics save raw `frames/`, `mosaic.png`, and `trajectory.json`.
+  Calibration determines their geometric accuracy. Regression sends the first
+  frame as a reference and switches permanently to commanded displacement if
+  communication or reply validation fails. A fixed canvas can clip model drift;
+  raw frames are retained and wholly outside placements are reported.
+- Servo runs save `state.json` and mosaic-view screenshots; demo runs save both
+  the live and mosaic views. The slow spiral saves images and `positions.txt`.
+
+### Network contract
+
+Messages are length-prefixed Python pickle objects with JPEG-encoded 224×224
+images. Servo replies contain `distance`, `angle`, `axis`; regression replies
+contain `dx`, `dy`. Units, `signal` semantics, timeouts and fallback behavior are
+specified in [protocol.md](docs/protocol.md). Only connect to a trusted server:
+this legacy protocol has no authentication or encryption and unpickling can
+execute code. The server implementation and weights must be supplied separately.
+
+## Repository structure
+
+```text
+config/example.toml           Machine configuration template
+docs/                        Deployment, data collection, protocol, development
+src/smarpod_pcle/
+  cli.py, doctor.py           Entry point and non-moving checks
+  config.py                  Validated TOML configuration
+  hardware.py, geometry.py   SDK lifecycle and independent coordinate math
+  capture.py, net.py         Shared screen and TCP operations
+  output.py                  Run directories and checked image writes
+  apps/                      Visual-servoing client and spiral demo
+  collection/                Distance, orientation, slow spiral and helpers
+  mosaicking/                Canvas primitives and shared scan lifecycle
+  tools/                     Screen preview, Z jogging, pivot check
+  experiments/               Legacy grid and calibration cross sweep
+  examples/                  Explicit vendor-derived setup/sequence examples
+tests/                       Hardware-free regression and installation tests
+apps/, common/, ...          Compatibility entry points/imports
+pyproject.toml               Package metadata, dependencies, CLI and test config
+environment.yml              Portable conda development environment recipe
+```
+
+The original paths still run after installation, for example
+`python apps/client.py --mode 2` or `python summer_school/collect_distance_data.py`.
+They delegate to the installed package; do not edit them to change application
+logic. For global `--config`, use the CLI or `SMARPOD_PCLE_CONFIG`.
+
+## Development and verification
+
+```bash
+python -m ruff check src tests
+python -m pytest
+python -m build
+python -m pip check
+```
+
+See [development.md](docs/development.md) for design boundaries and tests. CI is
+configured to run offline checks on Windows, Linux and macOS with Python 3.11/3.12;
+adding the workflow does not mean those remote jobs have run yet.
+
+Locally verified on this development Mac: Python 3.12 environment creation,
+editable installation, CLI/default diagnostics, unit tests, lint, and package
+build. The vendor SDK, actual controller, pCLE display capture, and inference
+service require separate validation on the control setup.
