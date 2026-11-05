@@ -19,11 +19,17 @@ def build_spiral_trajectory(spiral_wind=1.12, r_scale=1e-4,
 
     spiral_wind > 1 tightens the rings; a smaller step samples more densely.
     r_scale converts the dimensionless radius to metres.
+
+    The outer leg continues from the last coarse sample in ``fine_step`` steps so
+    there is no radial gap before ``fine_stop`` (avoids a seam at coarse_stop).
     """
-    steps = np.concatenate((
-        np.arange(0.0, coarse_stop, coarse_step),
-        np.arange(coarse_stop, fine_stop, fine_step),
-    ))
+    steps_coarse = np.arange(0.0, coarse_stop, coarse_step)
+    if len(steps_coarse) == 0:
+        steps = np.arange(0.0, fine_stop, fine_step)
+    else:
+        tail_start = float(steps_coarse[-1]) + fine_step
+        steps_tail = np.arange(tail_start, fine_stop, fine_step)
+        steps = np.concatenate((steps_coarse, steps_tail))
     trajectory = []
     for i in steps:
         ang = i * np.pi * spiral_wind

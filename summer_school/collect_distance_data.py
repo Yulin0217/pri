@@ -36,7 +36,7 @@ from summer_school.collection_utils import (
 
 # ---- Configuration --------------------------------------------------------
 Z_STEP_UM = 10.0         # step size along Z (micrometres)
-Z_MAX_UM = 100.0         # maximum defocus distance from the focus plane
+Z_MAX_UM = 200.0         # maximum defocus distance from the focus plane
 Z_DIRECTION = -1         # -1: move away along -Z (matches apps/client.py)
 FRAMES_PER_STEP = 1      # images captured at each Z position
 SETTLE_S = 0.5           # settle time after each move, before capturing

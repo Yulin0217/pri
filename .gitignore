@@ -2,6 +2,15 @@
 __pycache__/
 *.pyc
 
+# Local / vendor artifacts (not part of the repo)
+SDK/
+*.zip
+*.tif
+*.TIFF
+Capture*.PNG
+Capture*.png
+requirements.txt
+
 # Run outputs written by the scripts
 robot_state_*/
 mosaic_demo_*/
@@ -10,3 +19,30 @@ distance_data_*/
 orientation_data_*/
 mosaic_direct_*/
 mosaic_regression_*/
+
+# Collected / experimental datasets (local only)
+26/
+26_zr/
+angle_dis_tissue/
+bacon_data/
+blur_data/
+brain_distance_angle*/
+heart_distance_angle*/
+stomach_dis_angle*/
+c_1/
+controller_R/
+controller_result/
+data_train/
+groupshamlynschool/
+images/
+may_02_results/
+mosaic_GT/
+mosaic_wrong/
+pcle_data/
+pos_result_*/
+train_data/
+test/
+ttt/
+yulin/
+yy/
+yyy/

@@ -34,7 +34,8 @@ METERS_PER_PIXEL = 1e-6   # CALIBRATE: stage travel per mosaic pixel (m/px)
 BLEND = "average"         # "average" | "max" | "overwrite"
 SIGN_X = 1                # flip to align stage X with image X (+1 / -1)
 SIGN_Y = 1                # flip to align stage Y with image Y (+1 / -1)
-SETTLE_S = 0.5            # settle time after each move, before capturing
+SETTLE_S = 0.6            # settle time after each move, before capturing
+SPEED_M_S = 2e-3          # between 1e-3 (slow) and init default 3e-3
 SAVE_EVERY = 20           # write the current mosaic every N frames (0 disables)
 # ---------------------------------------------------------------------------
 
@@ -56,7 +57,8 @@ def main():
     os.makedirs(frames_dir, exist_ok=True)
     mosaic_path = os.path.join(out_dir, "mosaic.png")
 
-    trajectory = build_spiral_trajectory()
+    # Smaller coarse_step: inner rings closer (reduces seam at the old coarse/fine join).
+    trajectory = build_spiral_trajectory(coarse_step=0.2, fine_step=0.065)
     print("trajectory length:", len(trajectory))
 
     h = None
@@ -64,6 +66,8 @@ def main():
     poses = {}
     try:
         h = SmarPod_init()
+        smarpod.SetSpeed(h, 1, SPEED_M_S)
+        print("stage speed: %.3e m/s (%.2f mm/s)" % (SPEED_M_S, SPEED_M_S * 1e3))
         csys = Pose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         smarpod.SetCoordinateSystem(h, csys)
         smarpod.Move(h, Pose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), 0, True)
