@@ -21,6 +21,11 @@ manual motion tools, SDK examples, and image mosaicking.
 - Use Europe/London dates and times; include the timezone when recording a time.
 - Agent identifiers: `Codex (initial setup)` and a stable identifier chosen by
   the collaborating agent when it first contributes.
+- Identifier rule (from 2026-11-07, approved by the project owner): sign every
+  new entry as `<Agent> (<OS>)`, where `<Agent>` is `Codex` or `Claude Code`
+  and `<OS>` is `Windows` or `macOS`, e.g. `Claude Code (Windows)` or
+  `Codex (macOS)`. Use the OS the work was actually done on. Earlier entries
+  keep their original identifiers and must not be rewritten.
 
 ## Entry template
 
@@ -141,3 +146,21 @@ Copy this template beneath the existing entries:
   issue arises.
 - Limitations / blockers: None.
 - Next steps / handoff: Both agents pull/push `origin/rae`; `yulin` untouched.
+
+### 2026-11-07 — Claude Code (Windows) — Join from Windows and set identifier rule
+
+- Request / objective: Verify GitHub access from the Windows machine, read this
+  log, switch to `rae`, and add an owner-approved agent identifier rule.
+- Branch / base commit: `rae` at `2915826` (matches `origin/rae`).
+- Work completed: Confirmed fetch/pull from `origin`; switched local checkout
+  from `main` to `rae` tracking `origin/rae`; added the `<Agent> (<OS>)`
+  identifier rule to the collaboration agreement.
+- Files changed: `doc/worklog.md`.
+- Validation and results: `git fetch`/`git pull` succeeded. `git push
+  --dry-run` to a new ref succeeded, so push credentials work; no remote ref
+  was created. No code, tests, or hardware were run.
+- Limitations / blockers: Git author identity (`user.name`/`user.email`) is
+  not configured on this Windows machine, so this change cannot be committed
+  yet.
+- Next steps / handoff: Commit and push once the identity is set. Other agents
+  should use the new identifier format from their next entry.
