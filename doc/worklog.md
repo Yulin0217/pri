@@ -287,3 +287,38 @@ Copy this template beneath the existing entries:
 - Limitations / blockers: The residual is larger than after the first zero
   move (every axis then read 0.0000), but still within about 1.5 µm and 0.002 deg.
 - Next steps / handoff: The stage is at the zero pose and referenced.
+
+### 2026-11-10 — Claude Code (Windows) — Review and motion-test new mosaic scans
+
+- Request / objective: Owner asked me to check the three new mosaicking scans
+  (serpentine, raster, rings), run them if they look OK, and plot the
+  trajectories.
+- Branch / base commit: `rae` at `bc7d455`. The scan code is still
+  uncommitted in this checkout (another agent's work); I did not commit,
+  change, or stage it.
+- Work completed: Reviewed `mosaicking/scan_patterns.py`, the three entry
+  modules, the CLI changes, the `scan_runner.py` changes, and
+  `docs/mosaic-scans.md`. Ran `--dry-run` for each pattern. No pCLE viewer was
+  open, so with owner approval I ran a motion-only script (outside the repo)
+  instead of the mosaic workflow: same `build_trajectory` defaults, 2 mm/s,
+  0.3 s settle, `GetPose` after each point, no screen capture or server.
+  Plots and data are in the ignored
+  `runs/2026-11-10_mosaic_patterns_motion_test/`.
+- Files changed: `doc/worklog.md`.
+- Validation and results: With `PYTHONPATH=src`, `pytest` passed (53 tests,
+  64 subtests) and `ruff check src tests mosaicking` passed. Robot results:
+  serpentine 289/289 points in 113 s, raster 545/545 in 210 s, rings 239/239
+  in 92 s, with no unreachable points or errors. XY error (measured minus
+  commanded) was mean 0.02-0.03 µm and max 0.58 µm; |Z| max 0.11 µm;
+  rotation max 0.0005 deg. The stage finished at zero, then Stop/Close.
+- Limitations / blockers: The full mosaic lifecycle (`SmarPod_init` prompt,
+  capture, canvas, regression) was not run on hardware. Review notes:
+  (1) grid scans reach the 1.13 mm corner radius, versus 0.8 mm for the
+  spiral; (2) raster captures every point on the subdivided return diagonals,
+  so 256 of its 545 frames re-cover already scanned rows; (3) each ring repeats
+  its start point, which gives one duplicate frame per ring; (4) the scan work
+  was logged in `docs/worklog.md` as `/root`, not in this log with the
+  `<Agent> (<OS>)` identifier.
+- Next steps / handoff: The authoring agent should commit the scan code to
+  `rae` and log it here. Run the full mosaic workflow once the pCLE viewer is
+  open and the capture region and `meters_per_pixel` are calibrated.
