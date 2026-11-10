@@ -191,3 +191,23 @@ Copy this template beneath the existing entries:
 - Next steps / handoff: Before any motion, the owner should confirm the probe
   and sample are clear and then reference the stage. Decide which checkout the
   `smarpod-pcle` env should use.
+
+### 2026-11-10 — Claude Code (Windows) — First motion test
+
+- Request / objective: Owner asked to make the robot move as a test.
+- Branch / base commit: `rae` at `ea4096d`.
+- Work completed: With a script outside the repo (env `smarpod-pcle`, via
+  `conda run`), opened `usb:id:137043805` as model 10001, enabled sensors,
+  ran `FindReferenceMarks` (no calibration), set speed to 1 mm/s, moved
+  +0.5 mm in X and back. `Stop` and `Close` ran in a `finally` block.
+- Files changed: `doc/worklog.md`.
+- Validation and results: Referencing took 4.4 s; `IsReferenced` = 1.
+  Pose (X/Y/Z mm; Rx/Ry/Rz deg):
+  start -1.0785/1.8935/-0.0184; 2.0280/1.1390/2.0352,
+  after +X -0.5784/1.8933/-0.0185,
+  back -1.0781/1.8934/-0.0188. The X step was 0.5001 mm, and the return
+  error was below 0.5 µm in X and Y and below 0.5 µm in Z. No errors.
+- Limitations / blockers: Only X translation was tested. The stage is now
+  referenced but not at the zero pose, and the rotations are about 1-2 deg.
+- Next steps / handoff: Project workflows can now use the referenced stage.
+  Confirm the intended home pose before running `SmarPod_init`-based tools.
