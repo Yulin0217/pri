@@ -211,3 +211,18 @@ Copy this template beneath the existing entries:
   referenced but not at the zero pose, and the rotations are about 1-2 deg.
 - Next steps / handoff: Project workflows can now use the referenced stage.
   Confirm the intended home pose before running `SmarPod_init`-based tools.
+
+### 2026-11-10 — Claude Code (Windows) — Move stage to zero pose
+
+- Request / objective: Owner asked to return the robot to the zero pose.
+- Branch / base commit: `rae` at `086593f`.
+- Work completed: With a script outside the repo, checked that the stage was
+  still referenced, set speed to 1 mm/s, checked that the zero pose was
+  reachable, and moved to (0, 0, 0 mm; 0, 0, 0 deg). Stop/Close in `finally`.
+- Files changed: `doc/worklog.md`.
+- Validation and results: Before: X/Y/Z -1.0787/1.8934/-0.0183 mm,
+  Rx/Ry/Rz 2.0280/1.1393/2.0348 deg. After: every axis read 0.0000 (mm, deg).
+  No errors.
+- Limitations / blockers: The default pivot was used (pivot mode not set),
+  unlike `SmarPod_init`, which sets a relative pivot.
+- Next steps / handoff: The stage is referenced and at the zero pose.
