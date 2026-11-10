@@ -258,3 +258,18 @@ Copy this template beneath the existing entries:
   calibration. The pose moved by about 2 µm and 0.005 deg from zero.
 - Next steps / handoff: If the reference needs to be fresh after calibration,
   run `FindReferenceMarks` again and then return to zero.
+
+### 2026-11-10 — Claude Code (Windows) — Second sensor calibration
+
+- Request / objective: Owner asked to calibrate again.
+- Branch / base commit: `rae` at `1e57a1d`.
+- Work completed: Reran the same out-of-repo calibration script.
+- Files changed: `doc/worklog.md`.
+- Validation and results: Calibration took 16.1 s with no errors.
+  `IsReferenced` stayed 1, so no re-referencing was run. Pose after: X/Y/Z
+  -0.0027/-0.0021/0.0060 mm, Rx/Ry/Rz 0.0014/0.0106/-0.0082 deg.
+- Limitations / blockers: Each calibration leaves the pose a few µm and
+  about 0.01 deg further from zero (Z 0.0021 -> 0.0060 mm, Ry 0.0045 ->
+  0.0106 deg).
+- Next steps / handoff: Re-reference and/or return to zero before
+  precision work.
