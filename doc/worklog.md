@@ -226,3 +226,17 @@ Copy this template beneath the existing entries:
 - Limitations / blockers: The default pivot was used (pivot mode not set),
   unlike `SmarPod_init`, which sets a relative pivot.
 - Next steps / handoff: The stage is referenced and at the zero pose.
+
+### 2026-11-10 — Claude Code (Windows) — Repeat X motion test from zero
+
+- Request / objective: Owner asked to move the robot again.
+- Branch / base commit: `rae` at `9980ae7`.
+- Work completed: Reran the earlier out-of-repo test script from the zero
+  pose: +0.5 mm in X and back at 1 mm/s (stage already referenced, so no
+  referencing). Stop/Close in `finally`.
+- Files changed: `doc/worklog.md`.
+- Validation and results: After +X, X = 0.4990 mm. Back: X/Y/Z
+  0.0005/-0.0003/0.0001 mm, Rx/Ry/Rz -0.0004/0.0026/-0.0009 deg. No errors.
+- Limitations / blockers: None.
+- Next steps / handoff: The stage is referenced and at the zero pose (within
+  about 0.5 µm and 0.003 deg).
