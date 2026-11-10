@@ -194,3 +194,19 @@ project owner on 5 November 2026.
   maintenance requirements and update the canonical guides when behavior changes.
 - Commit: Pending at entry time; this entry is included with the naming and
   documentation changes in the same commit.
+
+### 2026-11-10 — /root — Review mosaic alternatives
+
+- Scope: Inspect the existing spiral mosaic and research other scanning and stitching forms.
+- Changes: Added `docs/mosaic-alternatives.md` with source mappings, trajectory comparisons, registration alternatives, research links, and a proposed raster-versus-spiral experiment. No runtime behavior changed.
+- Validation: Read the canonical spiral, canvas, runner, regression and grid implementations and checked external research/tool sources. No hardware or runtime tests were run for this documentation-only task.
+- Handoff: Alternative trajectories and image registration are proposals, not implemented features; physical coverage requires optical calibration.
+- Commit: Pending.
+
+### 2026-11-10 — /root — Implement independent alternative mosaic scans
+
+- Scope: Correct the earlier documentation-only interpretation and provide runnable alternatives to spiral scanning.
+- Changes: Removed `docs/mosaic-alternatives.md`. Added bounded serpentine, raster (including sampled return moves), and concentric-ring generators, separate package/CLI/script entries, optional dry-run JSON, and shared runner trajectory metadata. Preserved existing spiral defaults. Added usage documentation and tests.
+- Validation: With this checkout on PYTHONPATH and a workspace temporary directory, 27 related tests and 47 subtests passed. Ruff passed for src, tests and mosaicking. Initial checks exposed the installed-package path, temporary-directory permissions, and floating-point spacing issues; rerouted checks and corrected spacing rounding/unit conversion. Full-suite runs stalled and were interrupted; no full-suite success is claimed. No actual hardware, capture or server validation.
+- Handoff: Install this checkout on the control computer and calibrate overlap before hardware commissioning. Independent scripts use the shared backend intentionally.
+- Commit: Pending.

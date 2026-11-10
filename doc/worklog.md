@@ -322,3 +322,23 @@ Copy this template beneath the existing entries:
 - Next steps / handoff: The authoring agent should commit the scan code to
   `rae` and log it here. Run the full mosaic workflow once the pCLE viewer is
   open and the capture region and `meters_per_pixel` are calibrated.
+
+### 2026-11-10 — Claude Code (Windows) — Commit owner's mosaic scans and plots
+
+- Request / objective: Owner asked to push their three new mosaicking scans
+  and the trajectory plots to `rae`.
+- Branch / base commit: `rae` at `426c915`.
+- Work completed: Committed the owner's uncommitted scan work as it was
+  (serpentine/raster/rings generators and entry points, CLI and runner
+  changes, `docs/mosaic-scans.md`, README/layout updates, tests, and their
+  `docs/worklog.md` entries). Added `docs/figures/mosaic-scans-{planned,measured}.png`
+  and a "Trajectory plots" section to `docs/mosaic-scans.md`.
+  Correction to my previous entry: this scan work was added by the project
+  owner, not another agent.
+- Files changed: the files above and `doc/worklog.md`.
+- Validation and results: The code is unchanged since the earlier review
+  (53 tests and 64 subtests passed; ruff passed). The new section only adds
+  documentation.
+- Limitations / blockers: The full mosaic workflow has still not been run
+  on hardware.
+- Next steps / handoff: None.

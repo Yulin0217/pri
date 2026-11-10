@@ -122,6 +122,8 @@ smarpod-pcle [--config PATH] COMMAND [OPTIONS]
 | `collect-spiral` | Slow open-loop scan with images and positions | Yes | Optional, disabled by default |
 | `mosaic-direct` | Stitch using commanded stage positions | Yes | No |
 | `mosaic-regression` | Stitch using inferred frame displacement | Yes | Attempts connection; local fallback |
+| `mosaic-scan` | Serpentine, raster or rings; `--dry-run` previews coordinates | Unless dry run | Only with `--regression` |
+| `mosaic-serpentine`, `mosaic-raster`, `mosaic-rings` | Independent entries for each alternative scan | Unless dry run | Only with `--regression` |
 | `jog-z` | Enter to jog Z by 1 mm; `u`/`d` set direction; `q` exits | Yes | No |
 | `pivot-check` | Interactive pivot-offset and tilt check | Yes | No |
 | `grid-scan` | Legacy XY grid with repeated images at fixed Z | Yes | No |
@@ -129,7 +131,8 @@ smarpod-pcle [--config PATH] COMMAND [OPTIONS]
 | `sdk-pose-sequence` | Vendor-derived pose-sequence example | Yes | No |
 | `configure-controller` | Explicit, one-time persistent controller setup | Yes | No |
 
-Command-specific options are `servo-client --mode {0,1,2}` and
+Alternative mosaic options are in [scan patterns](docs/mosaic-scans.md).
+Other command-specific options are `servo-client --mode {0,1,2}` and
 `doctor --sdk --capture --server` (each diagnostic flag is optional). All commands
 accept `--help`. Scan ranges, timing, and recipe switches remain in their named
 workflow modules; they are not additional CLI flags.

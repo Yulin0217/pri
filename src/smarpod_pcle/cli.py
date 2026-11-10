@@ -6,6 +6,10 @@ import sys
 from .config import configure
 
 COMMANDS = {
+    "mosaic-serpentine": ("mosaicking.serpentine_mosaic", "Run a serpentine mosaic"),
+    "mosaic-raster": ("mosaicking.raster_mosaic", "Run a unidirectional raster mosaic"),
+    "mosaic-rings": ("mosaicking.rings_mosaic", "Run a concentric-ring mosaic"),
+    "mosaic-scan": ("mosaicking.scan_patterns", "Mosaic with serpentine, raster or concentric-ring scanning"),
     "servo-client": ("applications.visual_servo_client", "Visual servoing (modes 0/1) or image streaming (mode 2)"),
     "spiral-demo": ("applications.spiral_stream_demo", "Local spiral demo with a connected server"),
     "collect-distance": ("data_collection.distance_sweep", "Collect grouped distance-labelled images"),
@@ -39,6 +43,15 @@ def main(argv=None):
         sub = commands.add_parser(name, aliases=aliases, help=description, description=description)
         if name == "servo-client":
             sub.add_argument("--mode", choices=("0", "1", "2"), help="Omit for interactive selection")
+        if name in ("mosaic-scan", "mosaic-serpentine", "mosaic-raster", "mosaic-rings"):
+            if name == "mosaic-scan":
+                sub.add_argument("--pattern", choices=("serpentine", "raster", "rings"), default="serpentine")
+            sub.add_argument("--width-um", type=float, default=1600)
+            sub.add_argument("--height-um", type=float, default=1600)
+            sub.add_argument("--radius-um", type=float, default=800)
+            sub.add_argument("--spacing-um", type=float, default=100)
+            sub.add_argument("--regression", action="store_true", help="Use server displacement with local fallback")
+            sub.add_argument("--dry-run", action="store_true", help="Print XY path JSON without hardware, capture or server")
     args = parser.parse_args(argv)
     command = COMMAND_ALIASES.get(args.command, args.command)
     try:
@@ -50,6 +63,9 @@ def main(argv=None):
         module = import_module(f"smarpod_pcle.{COMMANDS[command][0]}")
         if command == "servo-client":
             module.main(mode=args.mode)
+        elif command in ("mosaic-scan", "mosaic-serpentine", "mosaic-raster", "mosaic-rings"):
+            module.main(**{key: value for key, value in vars(args).items()
+                           if key not in ("command", "config")})
         else:
             module.main()
         return 0

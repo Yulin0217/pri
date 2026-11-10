@@ -1,5 +1,11 @@
 # Project layout and entry points
 
+`mosaic-scan` uses `mosaicking/scan_patterns.py` and the shared mosaic runner.
+See [alternative scan usage](mosaic-scans.md).
+Independent `mosaic-serpentine`, `mosaic-raster`, and `mosaic-rings` commands use
+`mosaicking/{serpentine,raster,rings}_mosaic.py`. Standalone adapters are
+`mosaicking/mosaic_{serpentine,raster,rings}.py` at the repository root.
+
 The maintained Python package is [`src/smarpod_pcle/`](../src/smarpod_pcle/).
 Choose files by their responsibility: complete server-connected applications,
 data collection, image mosaicking, interactive tools, scan experiments, or

@@ -10,7 +10,7 @@ from .mosaic_canvas import MosaicCanvas, build_spiral_trajectory, estimate_canva
 from .regression_mosaic import DisplacementSource
 
 
-def run_scan(*, regression=False):
+def run_scan(*, regression=False, trajectory=None, scan_metadata=None):
     """Capture a stage scan and place each frame using physical or inferred offsets."""
     sdk = get_sdk()
     cfg = get_settings().mosaic
@@ -18,8 +18,10 @@ def run_scan(*, regression=False):
     out_dir = create_run_dir(f"mosaic_{mode}")
     frames_dir = out_dir / "frames"
     frames_dir.mkdir()
-    trajectory = (build_spiral_trajectory() if regression else
-                  build_spiral_trajectory(coarse_step=0.2, fine_step=0.065))
+    if trajectory is None:
+        trajectory = (build_spiral_trajectory() if regression else
+                      build_spiral_trajectory(coarse_step=0.2, fine_step=0.065))
+    scan_metadata = scan_metadata or {"pattern": "spiral"}
     settle = 0.5 if regression else 0.6
     source = DisplacementSource() if regression else None
     handle, canvas = None, None
@@ -83,7 +85,8 @@ def run_scan(*, regression=False):
         finally:
             try:
                 with (out_dir / "trajectory.json").open("w", encoding="utf-8") as file:
-                    json.dump({"metadata": {"mode": mode, **get_settings().as_dict()},
+                    json.dump({"metadata": {"mode": mode, "scan": scan_metadata,
+                                            **get_settings().as_dict()},
                                "frames": records}, file, indent=2)
             finally:
                 if canvas is not None:
