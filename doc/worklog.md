@@ -164,3 +164,30 @@ Copy this template beneath the existing entries:
   yet.
 - Next steps / handoff: Commit and push once the identity is set. Other agents
   should use the new identifier format from their next entry.
+
+### 2026-11-10 — Claude Code (Windows) — Detect and open SmarPod controller
+
+- Request / objective: Detect the newly connected robot from the Windows
+  machine and test a connection.
+- Branch / base commit: `rae` at `8d88b3a`.
+- Work completed: Found the FTDI USB serial device (COM5). In conda env
+  `smarpod-pcle`, `smaract.smarpod` loads (API 1.9.0, DLL 1.9.7) only when the
+  env is activated (e.g. `conda run -n smarpod-pcle`); calling the env's
+  `python.exe` directly fails with `cannot load library 'SmarPod.dll'` because
+  `Library\bin` is not on PATH. `FindSystems()` returned `usb:id:137043805`.
+  A read-only probe script (outside the repo) ran `Open(10001, locator)`,
+  queried status, and `Close` without any motion command.
+- Files changed: `doc/worklog.md`.
+- Validation and results: `Open` succeeded; `IsReferenced` = 0 (not
+  referenced); `GetMoveStatus` = 0; `GetPose` returned error 550, presumably
+  because the stage is not referenced. No calibration, referencing, or motion.
+- Limitations / blockers: Running `SmarPod_init` will reference the stage,
+  which moves it physically. `config/example.toml` uses locator `usb:ix:0`;
+  `usb:id:137043805` was not tested through the project config. The env's
+  editable `smarpod_pcle` install points to another checkout
+  (`C:\Users\Rayan\Documents\Codex\...\work\pri`), not `C:\Users\Rayan\pri`.
+  Correction to the 2026-11-07 entry: the Git identity is now set, and that
+  entry was committed and pushed.
+- Next steps / handoff: Before any motion, the owner should confirm the probe
+  and sample are clear and then reference the stage. Decide which checkout the
+  `smarpod-pcle` env should use.
