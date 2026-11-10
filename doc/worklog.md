@@ -273,3 +273,17 @@ Copy this template beneath the existing entries:
   0.0106 deg).
 - Next steps / handoff: Re-reference and/or return to zero before
   precision work.
+
+### 2026-11-10 — Claude Code (Windows) — Return to zero after calibration
+
+- Request / objective: Owner asked to return to the zero pose.
+- Branch / base commit: `rae` at `49fd267`.
+- Work completed: Reran the out-of-repo zero-pose script (reference checked,
+  1 mm/s, zero pose reachable). Stop/Close in `finally`.
+- Files changed: `doc/worklog.md`.
+- Validation and results: Before: X/Y/Z -0.0021/-0.0032/0.0060 mm, Rx/Ry/Rz
+  0.0003/0.0099/-0.0094 deg. After: X/Y/Z 0.0003/-0.0014/0.0007 mm,
+  Rx/Ry/Rz -0.0002/0.0015/-0.0020 deg. No errors.
+- Limitations / blockers: The residual is larger than after the first zero
+  move (every axis then read 0.0000), but still within about 1.5 µm and 0.002 deg.
+- Next steps / handoff: The stage is at the zero pose and referenced.
