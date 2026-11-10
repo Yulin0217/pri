@@ -240,3 +240,21 @@ Copy this template beneath the existing entries:
 - Limitations / blockers: None.
 - Next steps / handoff: The stage is referenced and at the zero pose (within
   about 0.5 µm and 0.003 deg).
+
+### 2026-11-10 — Claude Code (Windows) — Sensor calibration
+
+- Request / objective: Owner asked to run calibration.
+- Branch / base commit: `rae` at `3911924`.
+- Work completed: With an out-of-repo script, set `FREF_AND_CAL_FREQUENCY`
+  to 8000 (as `SmarPod_init` does), ran `Calibrate`, and planned to
+  re-reference only if referencing was lost. Stop/Close in `finally`.
+- Files changed: `doc/worklog.md`.
+- Validation and results: Calibration took 16.4 s with no errors.
+  `IsReferenced` was 1 before and after, so no re-referencing was run.
+  Pose after: X/Y/Z -0.0011/0.0008/0.0021 mm, Rx/Ry/Rz
+  0.0018/0.0045/-0.0023 deg.
+- Limitations / blockers: The SDK still reports the stage as referenced, but
+  I have not verified whether SmarAct recommends re-referencing after
+  calibration. The pose moved by about 2 µm and 0.005 deg from zero.
+- Next steps / handoff: If the reference needs to be fresh after calibration,
+  run `FindReferenceMarks` again and then return to zero.
